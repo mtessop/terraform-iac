@@ -3,7 +3,7 @@
 on:
   push:
     branches:
-      - main  # Change this to your main deployment branch
+      - main  # Change to your deployment branch
 
 jobs:
   terraform:
@@ -34,10 +34,11 @@ jobs:
           fi
 
       - name: Create S3 Bucket If Not Exists
-        if: ${{ env.BUCKET_EXISTS == 'false' }}
+        if: env.BUCKET_EXISTS == 'false'
         run: |
           echo "S3 bucket does not exist. Creating..."
           aws s3 mb "s3://my-terraform-storage-bucket"
+          echo "S3 bucket created."
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
