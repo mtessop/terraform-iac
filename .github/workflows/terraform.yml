@@ -3,28 +3,31 @@
 on:
   push:
     branches:
-      - main
+      - main  # Change if using another branch
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./  # Correct path to Terraform files
+        working-directory: terraform-iac  # Ensure this matches your repo folder
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Debug Directory (List Files)
-        run: ls -R
+      - name: Debug: Check working directory
+        run: |
+          echo "Current Directory: $(pwd)"
+          echo "Listing files:"
+          ls -al
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: us-east-1  # Change if needed
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -33,8 +36,10 @@ jobs:
 
       - name: Initialize Terraform
         run: |
-          echo "Running terraform init in $(pwd)"
+          cd terraform-iac
           terraform init
 
       - name: Plan Terraform
-        run: terraform plan
+        run: |
+          cd terraform-iac
+          terraform plan
