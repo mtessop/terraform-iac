@@ -3,9 +3,9 @@ name: "Terraform Init & Plan"
 on:
   push:
     branches:
-      - main  # Runs when pushing to main branch
+      - main
   workflow_run:
-    workflows: ["S3 Setup"]  # Ensure S3 is set up before running
+    workflows: ["S3 Setup"]
     types:
       - completed
 
@@ -31,7 +31,7 @@ jobs:
       - name: Initialize Terraform
         run: terraform init
 
-      - name: Terraform Plan
+      - name: Generate Terraform Plan
         run: terraform plan -out=tfplan
 
       - name: Save Terraform Plan Artifact
