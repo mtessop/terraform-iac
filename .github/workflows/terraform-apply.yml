@@ -6,33 +6,43 @@ on:
       - main
 
 jobs:
-  terraform:
+  plan:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.11
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Plan
-      run: terraform plan -out=plan.out
+      - name: Terraform Plan
+        run: terraform plan -out=plan.tfplan
 
-    - name: Upload Terraform Plan
-      uses: actions/upload-artifact@v2
-      with:
-        name: terraform-plan
-        path: plan.out
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: terraform-plan
+          path: plan.tfplan
 
-    - name: Download Terraform Plan
-      uses: actions/download-artifact@v2
-      with:
-        name: terraform-plan
-        path: ./
+  apply:
+    runs-on: ubuntu-latest
+    needs: plan
+    steps:
+      - name: Download plan artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: terraform-plan
+          path: .
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve plan.out
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.11
+
+      - name: Terraform Apply
+        run: terraform apply plan.tfplan

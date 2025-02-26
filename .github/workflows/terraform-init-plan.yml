@@ -34,15 +34,28 @@ jobs:
           git --version
           echo "Terraform Version:"
           terraform --version
+          echo "Current Directory:"
+          pwd
+          echo "Listing Files:"
+          ls -lah
 
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=terraform.tfplan
+
+      - name: Verify Terraform Plan File Exists
+        run: |
+          if [ -f "terraform.tfplan" ]; then
+            echo "Terraform plan file exists."
+          else
+            echo "ERROR: terraform.tfplan not found!"
+            exit 1
+          fi
 
       - name: Upload plan
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
-          path: ./terraform.tfplan
+          path: terraform.tfplan
