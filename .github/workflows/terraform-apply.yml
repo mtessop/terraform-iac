@@ -1,36 +1,37 @@
-name: "Terraform Apply"
+name: Terraform Apply
 
 on:
   workflow_run:
-    workflows: ["Terraform Init & Plan"]  # Ensure this matches `terraform-init-plan.yml`
+    workflows: ["Terraform Init & Plan"]
     types:
       - completed
 
 jobs:
   terraform-apply:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Download Terraform Plan Artifact
-        uses: actions/download-artifact@v3
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
         with:
-          name: tfplan
-          path: tfplan
+          name: terraform-plan
+          path: ./
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.6
-
-      - name: Apply Terraform
-        run: terraform apply -auto-approve tfplan
+      - name: Apply Terraform Plan
+        run: terraform apply -auto-approve terraform.tfplan
