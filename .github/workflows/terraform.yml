@@ -3,7 +3,7 @@
 on:
   push:
     branches:
-      - main  # Adjust to your working branch
+      - main
 
 jobs:
   terraform:
@@ -28,12 +28,14 @@ jobs:
       - name: Step 1 - Run Terraform Without Backend (Create S3 Bucket)
         run: |
           echo "Running Terraform without backend to create the S3 bucket..."
+          sed -i 's/^terraform {/##terraform {/' backend.tf  # Temporarily disable backend
           terraform init
           terraform apply -auto-approve
 
-      - name: Step 2 - Configure Backend Automatically
+      - name: Step 2 - Enable Backend and Reinitialize
         run: |
-          echo "Configuring Terraform Backend..."
+          echo 'Enabling backend...'
+          sed -i 's/^##terraform {/terraform {/' backend.tf  # Enable backend
           cat <<EOT > backend-config.tfvars
           bucket="my-terraform-storage-bucket"
           key="terraform/state"
