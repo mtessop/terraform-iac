@@ -25,26 +25,21 @@ jobs:
         with:
           terraform_version: 1.5.6
 
-      # Step 1: Run Terraform Without Backend to Create the S3 Bucket
+      # Step 1: Temporarily Remove Backend to Allow S3 Creation
       - name: Step 1 - Create S3 Bucket Without Backend
         run: |
-          echo "Running Terraform without backend to create the S3 bucket..."
-          sed -i 's/^terraform {/##terraform {/' backend.tf  # Temporarily disable backend
+          echo "Disabling backend to create S3 bucket..."
+          mv backend.tf backend.tf.disabled # Temporarily disable backend config
           terraform init
           terraform apply -target=aws_s3_bucket.terraform_state -auto-approve
 
-      # Step 2: Enable Backend and Reinitialize Terraform
+      # Step 2: Restore Backend and Reinitialize
       - name: Step 2 - Enable Backend and Reinitialize
         run: |
-          echo "Enabling backend and reinitializing Terraform..."
-          sed -i 's/^##terraform {/terraform {/' backend.tf  # Restore backend config
-          cat <<EOT > backend-config.tfvars
-          bucket="my-terraform-storage-bucket"
-          key="terraform/state"
-          region="us-east-1"
-          EOT
-          terraform init -backend-config=backend-config.tfvars -migrate-state
+          echo "Re-enabling backend..."
+          mv backend.tf.disabled backend.tf # Restore backend config
+          terraform init -force-copy
 
-      # Step 3: Plan Terraform
-      - name: Step 3 - Plan Terraform
+      # Step 3: Terraform Plan
+      - name: Step 3 - Terraform Plan
         run: terraform plan
