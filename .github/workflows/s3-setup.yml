@@ -1,16 +1,13 @@
-name: "S3 Bucket Setup"
+name: "S3 Setup"
 
 on:
-  workflow_dispatch:
   push:
-    paths:
-      - "S3.tf"
-      - "backend.tf"
+    branches:
+      - main
 
 jobs:
-  check-create-s3:
+  setup-s3:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -20,22 +17,21 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "us-east-1"
+          aws-region: us-east-1
 
       - name: Check if S3 Bucket Exists
-        id: check_s3
+        id: check-bucket
         continue-on-error: true
         run: |
-          STATUS=$(aws s3 ls "s3://my-terraform-storage-bucket" 2>&1 || echo "NOT_FOUND")
-          if [[ $STATUS == *"NoSuchBucket"* ]]; then
+          BUCKET_NAME="my-terraform-storage-bucket"
+          if aws s3 ls "s3://$BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
             echo "BUCKET_EXISTS=false" >> $GITHUB_ENV
           else
             echo "BUCKET_EXISTS=true" >> $GITHUB_ENV
           fi
 
-      - name: Create S3 Bucket if Missing
+      - name: Create S3 Bucket If Not Exists
         if: env.BUCKET_EXISTS == 'false'
         run: |
-          echo "Creating S3 bucket..."
-          aws s3api create-bucket --bucket my-terraform-storage-bucket --region us-east-1
-          echo "Bucket created successfully."
+          aws s3 mb s3://my-terraform-storage-bucket
+          echo "S3 bucket created."
