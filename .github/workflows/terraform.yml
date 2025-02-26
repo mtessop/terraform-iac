@@ -34,24 +34,4 @@ jobs:
             echo "BUCKET_EXISTS=false" >> $GITHUB_ENV
           else
             echo "BUCKET_EXISTS=true" >> $GITHUB_ENV
-          fi
-
-      # Step 2: Create S3 Bucket Only If It Does Not Exist
-      - name: Step 2 - Create S3 Bucket Without Backend
-        if: env.BUCKET_EXISTS == 'false'
-        run: |
-          echo "S3 bucket does not exist. Temporarily removing backend configuration..."
-          mv backend.tf backend.tf.disabled
-          terraform init
-          terraform apply -target=aws_s3_bucket.terraform_state -auto-approve
-
-      # Step 3: Restore Backend and Reinitialize
-      - name: Step 3 - Enable Backend and Reinitialize
-        run: |
-          echo "Re-enabling backend and reinitializing Terraform..."
-          mv backend.tf.disabled backend.tf
-          terraform init -force-copy
-
-      # Step 4: Terraform Plan
-      - name: Step 4 - Terraform Plan
-        run: terraform plan
+   
