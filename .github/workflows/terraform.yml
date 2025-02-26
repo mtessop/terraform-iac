@@ -3,28 +3,29 @@
 on:
   push:
     branches:
-      - main  # Change this to your branch
+      - main  # Change this to match your branch name
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use windows-latest if needed
+
     defaults:
       run:
-        working-directory: .  # Adjust this based on where your Terraform files are
+        working-directory: .  # Use '.' if Terraform files are in the root
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Debug Directory (Check Files)
-        run: ls -la
+      - name: Debug Directory (List Files)
+        run: ls -R
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  # Change to your AWS region
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -36,3 +37,6 @@ jobs:
 
       - name: Plan Terraform
         run: terraform plan
+
+      - name: Apply Terraform (Optional)
+        run: terraform apply -auto-approve
