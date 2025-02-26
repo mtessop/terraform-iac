@@ -1,9 +1,10 @@
 name: Terraform Apply
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Terraform Init & Plan"]  # This triggers apply AFTER Terraform Init & Plan
+    types:
+      - completed
 
 jobs:
   apply:
@@ -33,7 +34,7 @@ jobs:
       - name: Verify Terraform Plan File Exists
         run: |
           if [ -f "terraform.tfplan" ]; then
-            echo "✅ Terraform plan file exists!"
+            echo "✅ Terraform plan file found!"
           else
             echo "❌ ERROR: terraform.tfplan not found!"
             exit 1
@@ -44,9 +45,3 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve terraform.tfplan
-
-      - name: Upload Terraform Plan (for Debugging)
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan
-          path: terraform.tfplan
