@@ -1,14 +1,6 @@
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "my-cloudformation-s3-bucket-new-504074744946"
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  tags = {
-    Name        = "Terraform State Bucket"
-    Environment = "Production"
-  }
+  bucket = "my-terraform-storage-bucket"
+  force_destroy = true  # Optional: Allows destroying the bucket with Terraform
 }
 
 resource "aws_s3_bucket_versioning" "versioning" {
