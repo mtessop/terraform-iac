@@ -1,16 +1,17 @@
 name: "Terraform Init & Plan"
 
 on:
+  push:
+    branches:
+      - main  # Runs when pushing to main branch
   workflow_run:
-    workflows: ["S3 Bucket Setup"]  # Ensure the name matches `s3-setup.yml`
+    workflows: ["S3 Setup"]  # Ensure S3 is set up before running
     types:
       - completed
 
 jobs:
   terraform-init-plan:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'  # Ensure S3 setup succeeded
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -20,7 +21,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  # Change to match your AWS region
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
