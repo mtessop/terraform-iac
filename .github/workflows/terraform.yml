@@ -3,7 +3,7 @@
 on:
   push:
     branches:
-      - main
+      - main  # Adjust to your working branch
 
 jobs:
   terraform:
@@ -25,15 +25,18 @@ jobs:
         with:
           terraform_version: 1.5.6
 
-      - name: Initialize Terraform (First Run Without Backend)
+      - name: Step 1 - Run Terraform Without Backend (Create S3 Bucket)
         run: |
           echo "Running Terraform without backend to create the S3 bucket..."
-          sed -i 's/^terraform {/##terraform {/' backend.tf  # Comment backend
           terraform init
           terraform apply -auto-approve
 
-      - name: Enable Backend and Reinitialize
+      - name: Step 2 - Configure Backend Automatically
         run: |
-          echo 'Enabling backend...'
-          sed -i 's/^##terraform {/terraform {/' backend.tf  # Uncomment backend
-          terraform init -migrate-state
+          echo "Configuring Terraform Backend..."
+          cat <<EOT > backend-config.tfvars
+          bucket="my-terraform-storage-bucket"
+          key="terraform/state"
+          region="us-east-1"
+          EOT
+          terraform init -backend-config=backend-config.tfvars -migrate-state

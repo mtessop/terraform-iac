@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "my-terraform-storage-bucket"
-  force_destroy = true  # Optional: Allows destroying the bucket with Terraform
+  force_destroy = true  # Allows Terraform to delete the bucket if needed
 }
 
 resource "aws_s3_bucket_versioning" "versioning" {
