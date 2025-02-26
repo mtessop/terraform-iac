@@ -10,11 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform  # Ensure this is correct
+        working-directory: .  # Adjust this based on where your Terraform files are
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+
+      - name: Debug Directory (Check Files)
+        run: ls -la
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
