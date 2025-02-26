@@ -2,13 +2,14 @@ name: "Terraform Init & Plan"
 
 on:
   workflow_run:
-    workflows: ["S3 Bucket Setup"]
+    workflows: ["S3 Bucket Setup"]  # Ensure the name matches `s3-setup.yml`
     types:
-      - completed  # Runs after S3 Setup completes
+      - completed
 
 jobs:
   terraform-init-plan:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'  # Ensure S3 setup succeeded
 
     steps:
       - name: Checkout Repository
@@ -19,7 +20,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "us-east-1"
+          aws-region: us-east-1  # Change to match your AWS region
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
