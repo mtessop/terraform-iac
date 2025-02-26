@@ -1,4 +1,4 @@
-﻿name: Terraform CI/CD
+﻿name: "Terraform CI/CD"
 
 on:
   push:
@@ -18,20 +18,35 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: us-east-1  # Change this to your AWS region
+
+      - name: Check if S3 Bucket Exists
+        id: check_s3
+        continue-on-error: true
+        run: |
+          if aws s3 ls "s3://my-terraform-storage-bucket" 2>&1 | grep -q 'NoSuchBucket'; then
+            echo "BUCKET_EXISTS=false" >> $GITHUB_ENV
+          else
+            echo "BUCKET_EXISTS=true" >> $GITHUB_ENV
+          fi
+
+      - name: Create S3 Bucket If Not Exists
+        if: ${{ env.BUCKET_EXISTS == 'false' }}
+        run: |
+          echo "S3 bucket does not exist. Creating..."
+          aws s3 mb "s3://my-terraform-storage-bucket"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.6
 
-      # Step 1: Check if S3 Bucket Already Exists
-      - name: Check if S3 Bucket Exists
-        id: check_bucket
-        run: |
-          BUCKET_NAME="my-terraform-storage-bucket"
-          if aws s3 ls "s3://$BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
-            echo "BUCKET_EXISTS=false" >> $GITHUB_ENV
-          else
-            echo "BUCKET_EXISTS=true" >> $GITHUB_ENV
-   
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Plan Terraform
+        run: terraform plan
+
+      - name: Apply Terraform Changes
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
