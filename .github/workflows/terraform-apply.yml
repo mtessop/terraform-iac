@@ -1,28 +1,27 @@
 name: Terraform Apply
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
   apply:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      - name: Terraform Init
-        run: terraform init
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.0
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
+    - name: Terraform Init
+      run: terraform init
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: terraform-output
-          path: ./terraform-output
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+
+    - name: Upload Terraform Plan
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-plan
+        path: plan.out
