@@ -3,15 +3,11 @@
 on:
   push:
     branches:
-      - main  # Change this to match your branch name
+      - main
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest  # Use windows-latest if needed
-
-    defaults:
-      run:
-        working-directory: .  # Use '.' if Terraform files are in the root
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -33,10 +29,9 @@ jobs:
           terraform_version: 1.5.6
 
       - name: Initialize Terraform
-        run: terraform init
+        run: |
+          echo "Running terraform init in $(pwd)"
+          terraform init
 
       - name: Plan Terraform
         run: terraform plan
-
-      - name: Apply Terraform (Optional)
-        run: terraform apply -auto-approve
