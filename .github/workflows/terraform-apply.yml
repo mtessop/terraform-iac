@@ -2,7 +2,7 @@ name: Terraform Apply
 
 on:
   workflow_run:
-    workflows: ["Terraform Init & Plan"]  # This triggers apply AFTER Terraform Init & Plan
+    workflows: ["Terraform Init & Plan"]
     types:
       - completed
 
