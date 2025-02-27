@@ -3,34 +3,30 @@ name: Terraform Apply
 on:
   push:
     branches:
-      - main  # Trigger on push to the 'main' branch, you can change it based on your workflow
+      - main  # Runs when you push to the 'main' branch, adjust if needed
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest  # You can use other runners, like windows-latest or macos-latest
+    runs-on: ubuntu-latest  # The OS where the job will run (can use other environments like windows-latest)
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2  # Check out your repository code
+      uses: actions/checkout@v2  # Checks out your code so the runner can use it
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: 1.0.0  # Specify the Terraform version you want to use
+        terraform_version: 1.0.0  # Specify the version of Terraform you want to use
 
     - name: Download Terraform Plan Artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
-        name: terraform-plan  # This is the artifact name from the upload step
-        path: ./terraform-plan  # Path where it will be saved
-
-    - name: Terraform Init
-      run: terraform init  # Initialize the Terraform working directory
+        name: terraform-plan  # Name of the artifact you're downloading
+        path: ./terraform-plan  # Directory where the artifact will be saved
 
     - name: Terraform Apply
-      run: terraform apply -auto-approve ./terraform-plan/terraform.tfplan  # Apply the plan
+      run: terraform apply -auto-approve ./terraform-plan/terraform.tfplan  # Apply the Terraform plan
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Assuming you have AWS credentials in your GitHub secrets
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}  # GitHub Secrets for AWS credentials
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: us-east-1  # Update the region if needed
-
+        AWS_REGION: us-east-1  # Set the region (modify if needed)
