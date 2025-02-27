@@ -3,30 +3,59 @@ name: Terraform Apply
 on:
   push:
     branches:
-      - main  # Runs when you push to the 'main' branch, adjust if needed
+      - main  # Trigger on push to 'main' branch
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest  # The OS where the job will run (can use other environments like windows-latest)
+    runs-on: ubuntu-latest
 
     steps:
+    # Step 1: Checkout code
     - name: Checkout code
-      uses: actions/checkout@v2  # Checks out your code so the runner can use it
+      uses: actions/checkout@v2
 
+    # Step 2: Set up Terraform
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: 1.0.0  # Specify the version of Terraform you want to use
+        terraform_version: 1.0.0
 
-    - name: Download Terraform Plan Artifact
+    # Step 3: Initialize Terraform
+    - name: Terraform Init
+      run: terraform init
+
+    # Step 4: Generate Terraform Plan
+    - name: Terraform Plan
+      run: terraform plan -out=terraform-plan/terraform.tfplan
+
+    # Step 5: Upload Terraform Plan as an artifact
+    - name: Upload Terraform Plan Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: terraform-plan
+        path: terraform-plan/terraform.tfplan
+
+  apply:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Terraform
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.0
+
+    # Step 3: Download the Terraform Plan Artifact
+    - name: Download Terraform Plan
       uses: actions/download-artifact@v4
       with:
-        name: terraform-plan  # Name of the artifact you're downloading
-        path: ./terraform-plan  # Directory where the artifact will be saved
+        name: terraform-plan
+        path: ./terraform-plan
 
+    # Step 4: Terraform Apply
     - name: Terraform Apply
-      run: terraform apply -auto-approve ./terraform-plan/terraform.tfplan  # Apply the Terraform plan
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}  # GitHub Secrets for AWS credentials
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: us-east-1  # Set the region (modify if needed)
+      run: terraform apply -auto-approve ./terraform-plan/terraform.tfplan
