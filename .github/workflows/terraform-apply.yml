@@ -3,59 +3,31 @@ name: Terraform Apply
 on:
   push:
     branches:
-      - main  # Trigger on push to 'main' branch
+      - main
 
 jobs:
-  terraform:
+  apply:
     runs-on: ubuntu-latest
-
     steps:
-    # Step 1: Checkout code
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v2
-
-    # Step 2: Set up Terraform
-    - name: Set up Terraform
+    - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.0.0
-
-    # Step 3: Initialize Terraform
     - name: Terraform Init
       run: terraform init
-
-    # Step 4: Generate Terraform Plan
     - name: Terraform Plan
-      run: terraform plan -out=terraform-plan/terraform.tfplan
-
-    # Step 5: Upload Terraform Plan as an artifact
-    - name: Upload Terraform Plan Artifact
+      run: terraform plan -out=plan.out
+    - name: Upload Plan
       uses: actions/upload-artifact@v2
       with:
         name: terraform-plan
-        path: terraform-plan/terraform.tfplan
-
-  apply:
-    runs-on: ubuntu-latest
-
-    steps:
-    # Step 1: Checkout code
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    # Step 2: Set up Terraform
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.0.0
-
-    # Step 3: Download the Terraform Plan Artifact
-    - name: Download Terraform Plan
-      uses: actions/download-artifact@v4
+        path: plan.out
+    - name: Download Plan
+      uses: actions/download-artifact@v2
       with:
         name: terraform-plan
-        path: ./terraform-plan
-
-    # Step 4: Terraform Apply
+        path: .
     - name: Terraform Apply
-      run: terraform apply -auto-approve ./terraform-plan/terraform.tfplan
+      run: terraform apply plan.out
