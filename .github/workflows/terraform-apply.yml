@@ -1,48 +1,36 @@
 name: Terraform Apply
 
 on:
-  workflow_run:
-    workflows: ["Terraform Init & Plan"]
-    types:
-      - completed
+  push:
+    branches:
+      - main  # Trigger on push to the 'main' branch, you can change it based on your workflow
 
 jobs:
-  apply:
-    runs-on: ubuntu-latest
+  terraform:
+    runs-on: ubuntu-latest  # You can use other runners, like windows-latest or macos-latest
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v2  # Check out your repository code
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: 1.0.0
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.0  # Specify the Terraform version you want to use
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+    - name: Download Terraform Plan Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: terraform-plan  # This is the artifact name from the upload step
+        path: ./terraform-plan  # Path where it will be saved
 
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-plan  # Make sure this matches exactly
-          path: .
+    - name: Terraform Init
+      run: terraform init  # Initialize the Terraform working directory
 
-      - name: Verify Terraform Plan File Exists
-        run: |
-          ls -lah
-          if [ -f "terraform.tfplan" ]; then
-            echo "✅ Terraform plan file found!"
-          else
-            echo "❌ ERROR: terraform.tfplan not found!"
-            exit 1
-          fi
+    - name: Terraform Apply
+      run: terraform apply -auto-approve ./terraform-plan/terraform.tfplan  # Apply the plan
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Assuming you have AWS credentials in your GitHub secrets
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-east-1  # Update the region if needed
 
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve terraform.tfplan
