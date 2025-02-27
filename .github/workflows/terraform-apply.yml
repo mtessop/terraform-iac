@@ -28,11 +28,12 @@ jobs:
       - name: Download Terraform Plan
         uses: actions/download-artifact@v4
         with:
-          name: terraform-plan
+          name: terraform-plan  # Make sure this matches exactly
           path: .
 
       - name: Verify Terraform Plan File Exists
         run: |
+          ls -lah
           if [ -f "terraform.tfplan" ]; then
             echo "✅ Terraform plan file found!"
           else
